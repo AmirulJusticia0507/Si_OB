@@ -1,0 +1,57 @@
+<?php
+include 'koneksibaru.php';
+
+$barcodeResult = $_POST['barcodeResult'];
+$selectedActions = $_POST['actions'];
+
+// Fungsi untuk mendapatkan informasi perangkat dari cookie
+function getDeviceInformation() {
+    $deviceInfo = isset($_COOKIE['device_info']) ? json_decode($_COOKIE['device_info'], true) : null;
+    return $deviceInfo;
+}
+
+// Proses penyimpanan data ke database
+if (!empty($barcodeResult) && !empty($selectedActions)) {
+    // Dapatkan informasi perangkat
+    $deviceInfo = getDeviceInformation();
+    $deviceName = $deviceInfo['device_name'];
+    $deviceType = $deviceInfo['device_type'];
+
+    // Contoh query penyimpanan ke dalam tabel Lantai 2
+    $query = "INSERT INTO penilaian_kinerja_office_boy_lantai_2 (
+        barcodeResult, tindakan, 
+        action1_before, action1_after, action2_before, action2_after, 
+        action3_before, action3_after, action4_before, action4_after, 
+        action5_before, action5_after, action6_before, action6_after, 
+        action7_before, action7_after,
+        device_name, device_type
+    ) VALUES (
+        '$barcodeResult', '" . implode(", ", $selectedActions) . "', 
+        '{$_FILES['action1_before']['name']}', '{$_FILES['action1_after']['name']}', 
+        '{$_FILES['action2_before']['name']}', '{$_FILES['action2_after']['name']}', 
+        '{$_FILES['action3_before']['name']}', '{$_FILES['action3_after']['name']}', 
+        '{$_FILES['action4_before']['name']}', '{$_FILES['action4_after']['name']}', 
+        '{$_FILES['action5_before']['name']}', '{$_FILES['action5_after']['name']}', 
+        '{$_FILES['action6_before']['name']}', '{$_FILES['action6_after']['name']}', 
+        '{$_FILES['action7_before']['name']}', '{$_FILES['action7_after']['name']}',
+        '$deviceName', '$deviceType'
+    )";
+
+    // Eksekusi query
+    $result = $connectionServernew->query($query);
+
+    // Jika berhasil, pindahkan file ke direktori yang diinginkan
+    if ($result) {
+        $targetDir = "/uploads/Lantai2/";
+        move_uploaded_file($_FILES['action1_before']['tmp_name'], $targetDir . $_FILES['action1_before']['name']);
+        move_uploaded_file($_FILES['action1_after']['tmp_name'], $targetDir . $_FILES['action1_after']['name']);
+        // Lakukan hal yang sama untuk file-file lainnya
+
+        echo json_encode(array('status' => 'success', 'message' => 'Data berhasil disimpan.'));
+    } else {
+        echo json_encode(array('status' => 'error', 'message' => 'Gagal menyimpan data.'));
+    }
+} else {
+    echo json_encode(array('status' => 'error', 'message' => 'Data tidak lengkap.'));
+}
+?>

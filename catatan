@@ -1,0 +1,182 @@
+<div class="container mt-5">
+                                    <h2 class="mb-4">Form Penilaian Kinerja</h2>
+                                    <form id="performanceForm">
+                                        <table class="table table-bordered" id="officeboyTable">
+                                            <thead>
+                                                <tr>
+                                                    <th nowrap>Nama</th>
+                                                    <th nowrap>Jabatan</th>
+                                                    <th>Sikap Kerja</th>
+                                                    <th>Aspek Kinerja/Pelayanan</th>
+                                                    <th nowrap>Aspek Mutu Pelayanan</th>
+                                                    <th nowrap>Nilai Akhir</th>
+                                                    <th>Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td nowrap><input type="text" name="nama[]" class="form-control" required></td>
+                                                    <td nowrap><input type="text" name="jabatan[]" class="form-control" required></td>
+                                                    <td>
+                                                        <label for="kehadiran">Kehadiran/Absensi</label>
+                                                        <input type="range" id="kehadiran" name="kehadiran[]" class="form-range" min="0" max="100" required>
+                                                        <output for="kehadiran">0</output>
+                                                    </td>
+                                                    <td nowrap>
+                                                        <label for="checklist">Pengerjaan sesuai checklist pekerjaan</label>
+                                                        <input type="range" id="checklist" name="checklist[]" class="form-range" min="0" max="100" required>
+                                                        <output for="checklist">0</output>
+                                                    </td>
+                                                    <td nowrap>
+                                                        <label for="sop">Kepatuhan terhadap SOP</label>
+                                                        <input type="range" id="sop" name="sop[]" class="form-range" min="0" max="100" required>
+                                                        <output for="sop">0</output>
+                                                    </td>
+                                                    <td><span class="nilai-akhir">0</span></td>
+                                                    <td nowrap>
+                                                        <button class="btn btn-info btn-sm" onclick="detailRow(this)">Detail</button>
+                                                        <button class="btn btn-warning btn-sm" onclick="editRow(this)">Edit</button>
+                                                        <button class="btn btn-danger btn-sm" onclick="deleteRow(this)">Delete</button>
+                                                        <button class="btn btn-secondary btn-sm" onclick="printRow(this)">Print</button>
+                                                    </td>
+                                                </tr>
+                                                <!-- Tambahkan baris tambahan jika diperlukan -->
+                                            </tbody>
+                                        </table>
+                                        <button type="button" class="btn btn-primary" onclick="hitungNilai()">Hitung Nilai Akhir</button>
+                                    </form>
+                                </div>
+
+                                <script>
+                                    document.addEventListener('DOMContentLoaded', function () {
+                                        // Menangani perubahan nilai range dan memperbarui output
+                                        document.querySelectorAll('.form-range').forEach(function (input) {
+                                            input.addEventListener('input', function () {
+                                                input.nextElementSibling.value = input.value;
+                                            });
+                                        });
+                            
+                                        // Menghitung nilai akhir dan menentukan keterangan
+                                        function hitungNilai() {
+                                            var forms = document.forms['performanceForm'];
+                                            var rows = forms.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+                            
+                                            for (var i = 0; i < rows.length; i++) {
+                                                var cells = rows[i].getElementsByTagName('td');
+                                                var nilaiAkhir = 0;
+                            
+                                                for (var j = 2; j <= 4; j++) {
+                                                    nilaiAkhir += parseInt(cells[j].getElementsByTagName('input')[0].value);
+                                                }
+                            
+                                                var nilaiAkhirElem = cells[5].getElementsByClassName('nilai-akhir')[0];
+                                                nilaiAkhirElem.innerText = nilaiAkhir;
+                            
+                                                // Tambahkan logika untuk menentukan keterangan sesuai rentang nilai
+                                                // Anda dapat menyesuaikan rentang nilai dan keterangan sesuai kebutuhan
+                                                var keterangan = '';
+                                                if (nilaiAkhir > 95) {
+                                                    keterangan = 'Sangat Baik/Istimewa (SB)';
+                                                } else if (nilaiAkhir >= 86 && nilaiAkhir <= 95) {
+                                                    keterangan = 'Baik (B)';
+                                                } else if (nilaiAkhir >= 66 && nilaiAkhir <= 85) {
+                                                    keterangan = 'Cukup (C)';
+                                                } else if (nilaiAkhir >= 51 && nilaiAkhir <= 65) {
+                                                    keterangan = 'Kurang (K)';
+                                                } else {
+                                                    keterangan = 'Sangat Kurang (SK)';
+                                                }
+                            
+                                                // Hapus elemen keterangan sebelum menambahkan yang baru
+                                                var keteranganElem = cells[5].getElementsByClassName('keterangan')[0];
+                                                if (keteranganElem) {
+                                                    keteranganElem.remove();
+                                                }
+                            
+                                                // Tambahkan elemen keterangan pada setiap baris
+                                                keteranganElem = document.createElement('span');
+                                                keteranganElem.className = 'keterangan';
+                                                keteranganElem.innerText = keterangan;
+                                                cells[5].appendChild(keteranganElem);
+                                            }
+                                        }
+                            
+                                        // Panggil fungsi hitungNilai saat tombol disubmit
+                                        document.forms['performanceForm'].addEventListener('submit', function (event) {
+                                            event.preventDefault(); // Hindari submit form
+                                            hitungNilai(); // Hitung nilai
+                                        });
+                                    });
+                                </script>
+                                <script>
+                                    $(document).ready(function () {
+                                        // Inisialisasi DataTables
+                                        $('#officeboyTable').DataTable();
+                                    });
+                                </script>
+                                <script>
+                                    // Fungsi untuk mendapatkan data baris berdasarkan tombol aksi
+                                    function getRowData(button) {
+                                        var row = button.closest('tr');
+                                        var rowData = {
+                                            nama: row.querySelector('input[name="nama[]"]').value,
+                                            jabatan: row.querySelector('input[name="jabatan[]"]').value,
+                                            kehadiran: row.querySelector('input[name="kehadiran[]"]').value,
+                                            checklist: row.querySelector('input[name="checklist[]"]').value,
+                                            sop: row.querySelector('input[name="sop[]"]').value,
+                                            nilaiAkhir: row.querySelector('.nilai-akhir').innerText
+                                        };
+                                        return rowData;
+                                    }
+                            
+                                    // Fungsi untuk menampilkan data detail
+                                    function detailRow(button) {
+                                        var rowData = getRowData(button);
+                                        alert('Detail Data:\n' +
+                                            'Nama: ' + rowData.nama + '\n' +
+                                            'Jabatan: ' + rowData.jabatan + '\n' +
+                                            'Kehadiran: ' + rowData.kehadiran + '\n' +
+                                            'Checklist: ' + rowData.checklist + '\n' +
+                                            'SOP: ' + rowData.sop + '\n' +
+                                            'Nilai Akhir: ' + rowData.nilaiAkhir
+                                        );
+                                    }
+                            
+                                    // Fungsi untuk menampilkan data pada form untuk diedit
+                                    function editRow(button) {
+                                        var rowData = getRowData(button);
+                            
+                                        // Mengisi form edit dengan data dari baris yang dipilih
+                                        document.forms['performanceForm'].elements['nama[]'].value = rowData.nama;
+                                        document.forms['performanceForm'].elements['jabatan[]'].value = rowData.jabatan;
+                                        document.forms['performanceForm'].elements['kehadiran[]'].value = rowData.kehadiran;
+                                        document.forms['performanceForm'].elements['checklist[]'].value = rowData.checklist;
+                                        document.forms['performanceForm'].elements['sop[]'].value = rowData.sop;
+                            
+                                        // Menghitung nilai akhir
+                                        hitungNilai();
+                                    }
+                            
+                                    // Fungsi untuk menghapus baris
+                                    function deleteRow(button) {
+                                        var confirmation = confirm('Apakah Anda yakin ingin menghapus data ini?');
+                                        if (confirmation) {
+                                            var row = button.closest('tr');
+                                            row.remove();
+                                        }
+                                    }
+                            
+                                    // Fungsi untuk mencetak data
+                                    function printRow(button) {
+                                        var rowData = getRowData(button);
+                                        alert('Data untuk dicetak:\n' +
+                                            'Nama: ' + rowData.nama + '\n' +
+                                            'Jabatan: ' + rowData.jabatan + '\n' +
+                                            'Kehadiran: ' + rowData.kehadiran + '\n' +
+                                            'Checklist: ' + rowData.checklist + '\n' +
+                                            'SOP: ' + rowData.sop + '\n' +
+                                            'Nilai Akhir: ' + rowData.nilaiAkhir
+                                        );
+                                        // Tambahkan logika pencetakan data sesuai kebutuhan
+                                    }
+                                </script>
